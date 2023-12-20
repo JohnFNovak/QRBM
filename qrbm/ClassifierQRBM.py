@@ -90,10 +90,12 @@ class ClassQRBM:
         momentum_h = np.zeros(len(self.hidden_bias))
 
         for epoch in range(epochs):
+            if epoch % 100 == 0:
+                print(epoch)
             # Single step
             # 1
             # 1.1 Take a training sample v
-            random_selected_training_data_idx = epoch % len(training_data)
+            random_selected_training_data_idx = np.random.randint(0, len(training_data))
 
             # The visible layer values is the input data, plus the encoded labels
             v = np.hstack((
@@ -147,7 +149,7 @@ class ClassQRBM:
             momentum_h = momentum * momentum_h + lr * (np.array(h) - np.array(h_prim))
 
             # TODO: why are we updating the visible biases? Shouldn't those be clamped?
-            # self.visible_bias += momentum_v
+            self.visible_bias += momentum_v
             self.hidden_bias += momentum_h
 
             if epoch % epoch_drop == (epoch_drop-1):
@@ -207,7 +209,7 @@ class ClassQRBM:
                                                          qpu=self.qpu,
                                                          chain_strength=self.cs)
             sample_v[-len(self.classes):] = encoded_label
-        result = sample_v[:len(self.data_template.ravel())].reshape(self.data_template.shape)
+        result = sample_v[:len(self.data_template.ravel())]#.reshape(self.data_template.shape)
         return result
 
     def classify(self, data, passes = 1):
@@ -242,4 +244,4 @@ class ClassQRBM:
                                                          chain_strength=self.cs)
             sample_v[:len(self.data_template.ravel())] = data.ravel()
         result = sample_v[-len(self.classes):]
-        return {c:v for c, v in zip(self.classes, result.tolist())}
+        return {c:v for c, v in zip(self.classes, result)}
