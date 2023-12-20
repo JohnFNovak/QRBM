@@ -237,27 +237,40 @@ class ClassQRBM:
         ))
         for i in range(passes):
             if i == 0:
-                sample_h = samp.sample_opposite_layer_pyqubo(sample_v,
-                                                            self.visible_bias, self.w,
-                                                            self.hidden_bias,
-                                                            qpu=self.qpu,
-                                                            chain_strength=self.cs,
-                                                            mask=mask,
-                                                            sampler=self.sampler)
+                sample_h = self.sampler.sample_hidden(sample_v,
+                                                      self.hidden_bias,
+                                                      self.w,
+                                                      chain_strength=self.cs,
+                                                      mask=mask)
+                # sample_h = samp.sample_opposite_layer_pyqubo(sample_v,
+                #                                             self.visible_bias, self.w,
+                #                                             self.hidden_bias,
+                #                                             qpu=self.qpu,
+                #                                             chain_strength=self.cs,
+                #                                             mask=mask,
+                #                                             sampler=self.sampler)
             else:
-                sample_h = samp.sample_opposite_layer_pyqubo(sample_v,
-                                                            self.visible_bias, self.w,
-                                                            self.hidden_bias,
-                                                            qpu=self.qpu,
-                                                            chain_strength=self.cs,
-                                                            sampler=self.sampler)
-            sample_v = samp.sample_opposite_layer_pyqubo(sample_h,
-                                                         self.hidden_bias,
-                                                         self.w.T,
-                                                         self.visible_bias,
-                                                         qpu=self.qpu,
-                                                         chain_strength=self.cs,
-                                                         sampler=self.sampler)
+                sample_h = self.sampler.sample_hidden(sample_v,
+                                                      self.hidden_bias,
+                                                      self.w,
+                                                      chain_strength=self.cs)
+                # sample_h = samp.sample_opposite_layer_pyqubo(sample_v,
+                #                                             self.visible_bias, self.w,
+                #                                             self.hidden_bias,
+                #                                             qpu=self.qpu,
+                #                                             chain_strength=self.cs,
+                #                                             sampler=self.sampler)
+            sample_v = self.sampler.sample_visible(self.visible_bias,
+                                                   sample_h,
+                                                   self.w.T,
+                                                   chain_strength=self.cs)
+            # sample_v = samp.sample_opposite_layer_pyqubo(sample_h,
+            #                                              self.hidden_bias,
+            #                                              self.w.T,
+            #                                              self.visible_bias,
+            #                                              qpu=self.qpu,
+            #                                              chain_strength=self.cs,
+            #                                              sampler=self.sampler)
             sample_v[-len(self.classes):] = encoded_label
         result = sample_v[:len(self.data_template.ravel())]#.reshape(self.data_template.shape)
         return result
@@ -274,27 +287,41 @@ class ClassQRBM:
 
         for i in range(passes):
             if i == 0:
-                sample_h = samp.sample_opposite_layer_pyqubo(sample_v,
-                                                            self.visible_bias, self.w,
-                                                            self.hidden_bias,
-                                                            qpu=self.qpu,
-                                                            chain_strength=self.cs,
-                                                            mask=mask,
-                                                            sampler=self.sampler)
+            if i == 0:
+                sample_h = self.sampler.sample_hidden(sample_v,
+                                                      self.hidden_bias,
+                                                      self.w,
+                                                      chain_strength=self.cs,
+                                                      mask=mask)
+                # sample_h = samp.sample_opposite_layer_pyqubo(sample_v,
+                #                                             self.visible_bias, self.w,
+                #                                             self.hidden_bias,
+                #                                             qpu=self.qpu,
+                #                                             chain_strength=self.cs,
+                #                                             mask=mask,
+                #                                             sampler=self.sampler)
             else:
-                sample_h = samp.sample_opposite_layer_pyqubo(sample_v,
-                                                            self.visible_bias, self.w,
-                                                            self.hidden_bias,
-                                                            qpu=self.qpu,
-                                                            chain_strength=self.cs,
-                                                            sampler=self.sampler)
-            sample_v = samp.sample_opposite_layer_pyqubo(sample_h,
-                                                         self.hidden_bias,
-                                                         self.w.T,
-                                                         self.visible_bias,
-                                                         qpu=self.qpu,
-                                                         chain_strength=self.cs,
-                                                         sampler=self.sampler)
+                sample_h = self.sampler.sample_hidden(sample_v,
+                                                      self.hidden_bias,
+                                                      self.w,
+                                                      chain_strength=self.cs)
+                # sample_h = samp.sample_opposite_layer_pyqubo(sample_v,
+                #                                             self.visible_bias, self.w,
+                #                                             self.hidden_bias,
+                #                                             qpu=self.qpu,
+                #                                             chain_strength=self.cs,
+                #                                             sampler=self.sampler)
+            sample_v = self.sampler.sample_visible(self.visible_bias,
+                                                   sample_h,
+                                                   self.w.T,
+                                                   chain_strength=self.cs)
+            # sample_v = samp.sample_opposite_layer_pyqubo(sample_h,
+            #                                              self.hidden_bias,
+            #                                              self.w.T,
+            #                                              self.visible_bias,
+            #                                              qpu=self.qpu,
+            #                                              chain_strength=self.cs,
+            #                                              sampler=self.sampler)
             sample_v[:len(self.data_template.ravel())] = data.ravel()
         result = sample_v[-len(self.classes):]
         return {c:v for c, v in zip(self.classes, result)}
