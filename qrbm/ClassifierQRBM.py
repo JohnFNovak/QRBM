@@ -113,7 +113,7 @@ class ClassQRBM:
             # 1
             # 1.1 Take a training sample v
             random_selected_training_data_idx = np.random.randint(0, len(training_data))
-            if epoch % 10 == 0:
+            if epoch % 1000 == 0:
                 print(epoch)
                 print(random_selected_training_data_idx)
                 print(labels[random_selected_training_data_idx])
@@ -286,7 +286,6 @@ class ClassQRBM:
         ))
 
         for i in range(passes):
-            if i == 0:
             if i == 0:
                 sample_h = self.sampler.sample_hidden(sample_v,
                                                       self.hidden_bias,
