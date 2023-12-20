@@ -14,7 +14,8 @@ def sample_opposite_layer_pyqubo(v,
                                  qpu=False,
                                  chain_strength=2,
                                  num_reads=1,
-                                 mask=None):
+                                 mask=None,
+                                 sampler=None):
     # initialize Hamiltonian
     H = 0
     H_vars = []
@@ -42,8 +43,11 @@ def sample_opposite_layer_pyqubo(v,
     # print(bqm)
 
     # choose if you want to use real QPU or local simulation
-    if qpu: sampler = EmbeddingComposite(DWaveSampler())
-    else:   sampler = tabu.TabuSampler()
+    if sampler is None:
+        if qpu:
+            sampler = EmbeddingComposite(DWaveSampler())
+        else:
+            sampler = tabu.TabuSampler()
 
     # reading num_reads responses from the sampler
     sampleset = sampler.sample(bqm, chain_strength=chain_strength, num_reads=num_reads)

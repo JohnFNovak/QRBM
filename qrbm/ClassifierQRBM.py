@@ -1,6 +1,8 @@
 import numpy as np
 from typing import List, Optional, Union
 import matplotlib.pyplot as plt
+from dwave.system.composites import EmbeddingComposite
+from dwave.system.samplers import DWaveSampler
 
 import qrbm.sampler as samp
 import sys
@@ -38,6 +40,12 @@ class ClassQRBM:
         self.n_visible = len(data_template.ravel()) + len(classes)
         self.n_hidden = n_hidden
         self.qpu = qpu
+
+        if qpu:
+            self.sampler = EmbeddingComposite(DWaveSampler())
+        else:
+            self.sampler = tabu.TabuSampler()
+
         self.cs = chain_strength
 
         # Initialize weights randomly
@@ -116,7 +124,8 @@ class ClassQRBM:
             h = samp.sample_opposite_layer_pyqubo(old_v, self.visible_bias,
                                                   self.w, self.hidden_bias,
                                                   qpu=self.qpu,
-                                                  chain_strength=self.cs)
+                                                  chain_strength=self.cs,
+                                                  sampler=self.sampler)
 
             # 2 Compute the outer product of v and h and call this the positive gradient
             pos_grad = np.outer(v, h)
@@ -127,14 +136,16 @@ class ClassQRBM:
                                                        self.w.T,
                                                        self.visible_bias,
                                                        qpu=self.qpu,
-                                                       chain_strength=self.cs)
+                                                       chain_strength=self.cs,
+                                                       sampler=self.sampler)
 
             # 3.2 Then resample the hidden activations h' from this. (Gibbs sampling step)
             h_prim = samp.sample_opposite_layer_pyqubo(v_prim,
                                                        self.visible_bias,
                                                        self.w, self.hidden_bias,
                                                        qpu=self.qpu,
-                                                       chain_strength=self.cs)
+                                                       chain_strength=self.cs,
+                                                       sampler=self.sampler)
 
             # 4 Compute the outer product of v' and h' and call this the negative gradient
             neg_grad = np.outer(v_prim, h_prim)
@@ -164,13 +175,15 @@ class ClassQRBM:
                                                          self.w,
                                                          self.hidden_bias,
                                                          qpu=self.qpu,
-                                                         chain_strength=self.cs)
+                                                         chain_strength=self.cs,
+                                                         sampler=self.sampler)
             sample_output = samp.sample_opposite_layer_pyqubo(sample_h,
                                                               self.hidden_bias,
                                                               self.w.T,
                                                               self.visible_bias,
                                                               qpu=self.qpu,
-                                                              chain_strength=self.cs)
+                                                              chain_strength=self.cs,
+                                                              sampler=self.sampler)
             learning_curve_plot.append(np.sum((np.array(v) - np.array(sample_output))**2))
 
         plt.figure()
@@ -197,19 +210,22 @@ class ClassQRBM:
                                                             self.hidden_bias,
                                                             qpu=self.qpu,
                                                             chain_strength=self.cs,
-                                                            mask=mask)
+                                                            mask=mask,
+                                                            sampler=self.sampler)
             else:
                 sample_h = samp.sample_opposite_layer_pyqubo(sample_v,
                                                             self.visible_bias, self.w,
                                                             self.hidden_bias,
                                                             qpu=self.qpu,
-                                                            chain_strength=self.cs)
+                                                            chain_strength=self.cs,
+                                                            sampler=self.sampler)
             sample_v = samp.sample_opposite_layer_pyqubo(sample_h,
                                                          self.hidden_bias,
                                                          self.w.T,
                                                          self.visible_bias,
                                                          qpu=self.qpu,
-                                                         chain_strength=self.cs)
+                                                         chain_strength=self.cs,
+                                                         sampler=self.sampler)
             sample_v[-len(self.classes):] = encoded_label
         result = sample_v[:len(self.data_template.ravel())]#.reshape(self.data_template.shape)
         return result
