@@ -39,6 +39,7 @@ def sample_opposite_layer_pyqubo(v,
 
     model = H.compile()
     # print(model)
+    del(H)
     bqm = model.to_bqm()
     # print(bqm)
 
@@ -51,11 +52,14 @@ def sample_opposite_layer_pyqubo(v,
 
     # reading num_reads responses from the sampler
     sampleset = sampler.sample(bqm, chain_strength=chain_strength, num_reads=num_reads)
+    del(model)
+    del(bqm)
     solution1 = sampleset.first.sample
     # print(solution1)
     solution1_list = [(k, v) for k, v in solution1.items()]
     solution1_list.sort(key=lambda tup: int(tup[0]))  # sorts in place
     solution1_list_final = [v for (k, v) in solution1_list]
+    del(solution1_list)
     return solution1_list_final
 
 

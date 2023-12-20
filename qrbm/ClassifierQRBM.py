@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from dwave.system.composites import EmbeddingComposite
 from dwave.system.samplers import DWaveSampler
 
+import tabu
 import qrbm.sampler as samp
 import sys
 
@@ -100,12 +101,14 @@ class ClassQRBM:
         momentum_h = np.zeros(len(self.hidden_bias))
 
         for epoch in range(epochs):
-            if epoch % 100 == 0:
-                print(epoch)
             # Single step
             # 1
             # 1.1 Take a training sample v
             random_selected_training_data_idx = np.random.randint(0, len(training_data))
+            if epoch % 10 == 0:
+                print(epoch)
+                print(random_selected_training_data_idx)
+                print(labels[random_selected_training_data_idx])
 
             # The visible layer values is the input data, plus the encoded labels
             v = np.hstack((
@@ -185,6 +188,7 @@ class ClassQRBM:
                                                               chain_strength=self.cs,
                                                               sampler=self.sampler)
             learning_curve_plot.append(np.sum((np.array(v) - np.array(sample_output))**2))
+            del(sample_output)
 
         plt.figure()
         plt.plot(learning_curve_plot)
@@ -273,9 +277,7 @@ class ClassQRBM:
                           str(self.n_visible),
                           np.array_repr(self.visible_bias),
                           np.array_repr(self.hidden_bias),
-                          np.array_repr(self.w),
-                          np.array_repr(self.data_template),
-                          self.classes]
+                          np.array_repr(self.w)]
             with open(filename, 'w') as file:
                 file.write('#'.join(parameters))
 
@@ -289,5 +291,3 @@ class ClassQRBM:
             self.visible_bias = eval('np.'+parameters[2])
             self.hidden_bias = eval('np.'+parameters[3])
             self.w = eval('np.'+parameters[4])
-            self.data_template = eval('np.'+parameters[5])
-            self.classes = eval(parameters[6])
