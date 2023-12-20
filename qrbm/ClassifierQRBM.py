@@ -125,6 +125,7 @@ class ClassQRBM:
             ))
             old_v = v
 
+            # I don't understand the batch_size logic
             if batch_size is not None:
                 if epoch % batch_size != 0:
                     # NOTE: v_prim is defined further on
@@ -147,7 +148,7 @@ class ClassQRBM:
 
             # 3
             # 3.1 From h, sample a reconstruction v' of the visible units
-            v_prim = self.sampler.sample_visible(old_v,
+            v_prim = self.sampler.sample_visible(self.visible_bias,
                                                  h,
                                                  self.w.T,
                                                  chain_strength=self.cs)
@@ -184,7 +185,6 @@ class ClassQRBM:
             momentum_v = momentum * momentum_v + lr * (np.array(v) - np.array(v_prim))
             momentum_h = momentum * momentum_h + lr * (np.array(h) - np.array(h_prim))
 
-            # TODO: why are we updating the visible biases? Shouldn't those be clamped?
             self.visible_bias += momentum_v
             self.hidden_bias += momentum_h
 

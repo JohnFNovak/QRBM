@@ -61,7 +61,7 @@ class Sampler:
         self.hvH_model = H.compile()
 
     def sample_hidden(self,
-                      v_biases,
+                      v_states,
                       h_biases,
                       weights,
                       chain_strength=2,
@@ -70,7 +70,7 @@ class Sampler:
         # prepare feed_dict
         feed_dict = {}
         for i in range(self.n_visible):
-            feed_dict[f'bv{i}'] = v_biases[i]
+            feed_dict[f'bv{i}'] = v_states[i]
             if mask is not None and mask[i]:
                 for j in range(self.n_hidden):
                     feed_dict[f'W{i},{j}'] = 0
@@ -92,7 +92,7 @@ class Sampler:
 
     def sample_visible(self,
                        v_biases,
-                       h_biases,
+                       h_states,
                        weights,
                        chain_strength=2,
                        num_reads=1,
@@ -100,7 +100,7 @@ class Sampler:
         # prepare feed_dict
         feed_dict = {}
         for i in range(self.n_hidden):
-            feed_dict[f'bh{i}'] = h_biases[i]
+            feed_dict[f'bh{i}'] = h_states[i]
             if mask is not None and mask[i]:
                 for j in range(self.n_visible):
                     feed_dict[f'W{i},{j}'] = 0
