@@ -3,6 +3,8 @@ from typing import List, Optional, Union
 import matplotlib.pyplot as plt
 
 import qrbm.sampler as samp
+import sys
+
 # from qrbm.MSQRBM import sigmoid
 
 # TO FIGURE OUT:
@@ -229,19 +231,47 @@ class ClassQRBM:
                                                             self.hidden_bias,
                                                             qpu=self.qpu,
                                                             chain_strength=self.cs,
-                                                            mask=mask)
+                                                            mask=mask,
+                                                            sampler=self.sampler)
             else:
                 sample_h = samp.sample_opposite_layer_pyqubo(sample_v,
                                                             self.visible_bias, self.w,
                                                             self.hidden_bias,
                                                             qpu=self.qpu,
-                                                            chain_strength=self.cs)
+                                                            chain_strength=self.cs,
+                                                            sampler=self.sampler)
             sample_v = samp.sample_opposite_layer_pyqubo(sample_h,
                                                          self.hidden_bias,
                                                          self.w.T,
                                                          self.visible_bias,
                                                          qpu=self.qpu,
-                                                         chain_strength=self.cs)
+                                                         chain_strength=self.cs,
+                                                         sampler=self.sampler)
             sample_v[:len(self.data_template.ravel())] = data.ravel()
         result = sample_v[-len(self.classes):]
         return {c:v for c, v in zip(self.classes, result)}
+
+    def save(self, filename):
+        with np.printoptions(threshold=sys.maxsize):
+            parameters = [str(self.n_hidden),
+                          str(self.n_visible),
+                          np.array_repr(self.visible_bias),
+                          np.array_repr(self.hidden_bias),
+                          np.array_repr(self.w),
+                          np.array_repr(self.data_template),
+                          self.classes]
+            with open(filename, 'w') as file:
+                file.write('#'.join(parameters))
+
+
+    def load(self, filename):
+        with open(filename) as file:
+            res = file.read()
+            parameters = res.split('#')
+            self.n_hidden = eval(parameters[0])
+            self.n_visible = eval(parameters[1])
+            self.visible_bias = eval('np.'+parameters[2])
+            self.hidden_bias = eval('np.'+parameters[3])
+            self.w = eval('np.'+parameters[4])
+            self.data_template = eval('np.'+parameters[5])
+            self.classes = eval(parameters[6])
