@@ -5,7 +5,7 @@ from dwave.system.composites import EmbeddingComposite
 from dwave.system.samplers import DWaveSampler
 
 import tabu
-import qrbm.sampler as samp
+from qrbm.persistent_sampler import Sampler
 import sys
 
 # from qrbm.MSQRBM import sigmoid
@@ -43,9 +43,17 @@ class ClassQRBM:
         self.qpu = qpu
 
         if qpu:
-            self.sampler = EmbeddingComposite(DWaveSampler())
+            self.sampler = Sampler(
+                self.n_visible,
+                self.n_hidden,
+                sampler=EmbeddingComposite(DWaveSampler())
+            )
         else:
-            self.sampler = tabu.TabuSampler()
+            self.sampler = Sampler(
+                self.n_visible,
+                self.n_hidden,
+                sampler=tabu.TabuSampler()
+            )
 
         self.cs = chain_strength
 
@@ -124,31 +132,43 @@ class ClassQRBM:
 
             # 1.2 Compute the probabilites of the hidden units
             # persisntent CD takes v from previous iterations
-            h = samp.sample_opposite_layer_pyqubo(old_v, self.visible_bias,
-                                                  self.w, self.hidden_bias,
-                                                  qpu=self.qpu,
-                                                  chain_strength=self.cs,
-                                                  sampler=self.sampler)
+            h = self.sampler.sample_hidden(old_v,
+                                           self.hidden_bias,
+                                           self.w,
+                                           chain_strength=self.cs)
+            # h = samp.sample_opposite_layer_pyqubo(old_v, self.visible_bias,
+            #                                       self.w, self.hidden_bias,
+            #                                       qpu=self.qpu,
+            #                                       chain_strength=self.cs,
+            #                                       sampler=self.sampler)
 
             # 2 Compute the outer product of v and h and call this the positive gradient
             pos_grad = np.outer(v, h)
 
             # 3
             # 3.1 From h, sample a reconstruction v' of the visible units
-            v_prim = samp.sample_opposite_layer_pyqubo(h, self.hidden_bias,
-                                                       self.w.T,
-                                                       self.visible_bias,
-                                                       qpu=self.qpu,
-                                                       chain_strength=self.cs,
-                                                       sampler=self.sampler)
+            v_prim = self.sampler.sample_visible(old_v,
+                                                 h,
+                                                 self.w.T,
+                                                 chain_strength=self.cs)
+            # v_prim = samp.sample_opposite_layer_pyqubo(h, self.hidden_bias,
+            #                                            self.w.T,
+            #                                            self.visible_bias,
+            #                                            qpu=self.qpu,
+            #                                            chain_strength=self.cs,
+            #                                            sampler=self.sampler)
 
             # 3.2 Then resample the hidden activations h' from this. (Gibbs sampling step)
-            h_prim = samp.sample_opposite_layer_pyqubo(v_prim,
-                                                       self.visible_bias,
-                                                       self.w, self.hidden_bias,
-                                                       qpu=self.qpu,
-                                                       chain_strength=self.cs,
-                                                       sampler=self.sampler)
+            h_prim = self.sampler.sample_hidden(v_prim,
+                                                self.hidden_bias,
+                                                self.w,
+                                                chain_strength=self.cs)
+            # h_prim = samp.sample_opposite_layer_pyqubo(v_prim,
+            #                                            self.visible_bias,
+            #                                            self.w, self.hidden_bias,
+            #                                            qpu=self.qpu,
+            #                                            chain_strength=self.cs,
+            #                                            sampler=self.sampler)
 
             # 4 Compute the outer product of v' and h' and call this the negative gradient
             neg_grad = np.outer(v_prim, h_prim)
@@ -173,20 +193,28 @@ class ClassQRBM:
                 lr *= (1 - lr_decay)
 
             sample_v = v
-            sample_h = samp.sample_opposite_layer_pyqubo(sample_v,
-                                                         self.visible_bias,
-                                                         self.w,
-                                                         self.hidden_bias,
-                                                         qpu=self.qpu,
-                                                         chain_strength=self.cs,
-                                                         sampler=self.sampler)
-            sample_output = samp.sample_opposite_layer_pyqubo(sample_h,
-                                                              self.hidden_bias,
-                                                              self.w.T,
-                                                              self.visible_bias,
-                                                              qpu=self.qpu,
-                                                              chain_strength=self.cs,
-                                                              sampler=self.sampler)
+            sample_h = self.sampler.sample_hidden(sample_v,
+                                                  self.hidden_bias,
+                                                  self.w,
+                                                  chain_strength=self.cs)
+            # sample_h = samp.sample_opposite_layer_pyqubo(sample_v,
+            #                                              self.visible_bias,
+            #                                              self.w,
+            #                                              self.hidden_bias,
+            #                                              qpu=self.qpu,
+            #                                              chain_strength=self.cs,
+            #                                              sampler=self.sampler)
+            sample_output = self.sampler.sample_visible(self.visible_bias,
+                                                        sample_h,
+                                                        self.w.T,
+                                                        chain_strength=self.cs)
+            # sample_output = samp.sample_opposite_layer_pyqubo(sample_h,
+            #                                                   self.hidden_bias,
+            #                                                   self.w.T,
+            #                                                   self.visible_bias,
+            #                                                   qpu=self.qpu,
+            #                                                   chain_strength=self.cs,
+            #                                                   sampler=self.sampler)
             learning_curve_plot.append(np.sum((np.array(v) - np.array(sample_output))**2))
             del(sample_output)
 
