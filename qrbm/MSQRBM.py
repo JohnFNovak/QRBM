@@ -7,7 +7,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # from qrbm.oldsampler import Sampler
-import qrbm.sampler as samp
+# import qrbm.sampler as samp
+from dwave.system.composites import EmbeddingComposite
+from dwave.system.samplers import DWaveSampler
+
+import tabu
+from qrbm.persistent_sampler import Sampler
 
 def sigmoid(x):
     result = 1 / (1 + np.exp(-x))
@@ -37,6 +42,20 @@ class MSQRBM:
         self.n_visible = n_visible
         self.n_hidden = n_hidden
         self.qpu = qpu
+
+        if qpu:
+            self.sampler = Sampler(
+                self.n_visible,
+                self.n_hidden,
+                sampler=EmbeddingComposite(DWaveSampler())
+            )
+        else:
+            self.sampler = Sampler(
+                self.n_visible,
+                self.n_hidden,
+                sampler=tabu.TabuSampler()
+            )
+
         self.cs = chain_strength
 
         self.w = (np.random.rand(self.n_visible, self.n_hidden) * 2 - 1) * 1
@@ -151,10 +170,14 @@ class MSQRBM:
             # h = (np.random.rand(len(self.hidden_bias)) < prob_h).astype(int)
 
             # persisntent CD takes v from previous iterations
-            h = samp.sample_opposite_layer_pyqubo(old_v, self.visible_bias,
-                                                  self.w, self.hidden_bias,
-                                                  qpu=self.qpu,
-                                                  chain_strength=self.cs)
+            # h = samp.sample_opposite_layer_pyqubo(old_v, self.visible_bias,
+            #                                       self.w, self.hidden_bias,
+            #                                       qpu=self.qpu,
+            #                                       chain_strength=self.cs)
+            h = self.sampler.sample_hidden(old_v,
+                                           self.hidden_bias,
+                                           self.w,
+                                           chain_strength=self.cs)
             # h = samp.sample_opposite_layer_pyqubo(v, self.visible_bias, self.w, self.hidden_bias)
 
             # print("h: ", h)
@@ -169,11 +192,15 @@ class MSQRBM:
             # #znów klasycznie
             # v_prim = (np.random.rand(len(self.visible_bias)) < prob_v_prim).astype(int)
 
-            v_prim = samp.sample_opposite_layer_pyqubo(h, self.hidden_bias,
-                                                       self.w.T,
-                                                       self.visible_bias,
-                                                       qpu=self.qpu,
-                                                       chain_strength=self.cs)
+            # v_prim = samp.sample_opposite_layer_pyqubo(h, self.hidden_bias,
+            #                                            self.w.T,
+            #                                            self.visible_bias,
+            #                                            qpu=self.qpu,
+            #                                            chain_strength=self.cs)
+            v_prim = self.sampler.sample_visible(self.visible_bias,
+                                                 h,
+                                                 self.w.T,
+                                                 chain_strength=self.cs)
 
             # print("v_prim: ", v_prim)
 
@@ -183,11 +210,15 @@ class MSQRBM:
             # # klasycznie mogę to zrobić tak:
             # h_prim = (np.random.rand(len(self.hidden_bias)) < prob_h_prim).astype(int)
 
-            h_prim = samp.sample_opposite_layer_pyqubo(v_prim,
-                                                       self.visible_bias,
-                                                       self.w, self.hidden_bias,
-                                                       qpu=self.qpu,
-                                                       chain_strength=self.cs)
+            # h_prim = samp.sample_opposite_layer_pyqubo(v_prim,
+            #                                            self.visible_bias,
+            #                                            self.w, self.hidden_bias,
+            #                                            qpu=self.qpu,
+            #                                            chain_strength=self.cs)
+            h_prim = self.sampler.sample_hidden(v_prim,
+                                                self.hidden_bias,
+                                                self.w,
+                                                chain_strength=self.cs)
             # print("h_prim: ", h_prim)
 
             # 4 Compute the outer product of v' and h' and call this the negative gradient.
@@ -234,18 +265,26 @@ class MSQRBM:
             #krzywa uczenia
             # sample_v = samp.sample_v(self.visible_bias)
             sample_v = v
-            sample_h = samp.sample_opposite_layer_pyqubo(sample_v,
-                                                         self.visible_bias,
-                                                         self.w,
-                                                         self.hidden_bias,
-                                                         qpu=self.qpu,
-                                                         chain_strength=self.cs)
-            sample_output = samp.sample_opposite_layer_pyqubo(sample_h,
-                                                              self.hidden_bias,
-                                                              self.w.T,
-                                                              self.visible_bias,
-                                                              qpu=self.qpu,
-                                                              chain_strength=self.cs)
+            # sample_h = samp.sample_opposite_layer_pyqubo(sample_v,
+            #                                              self.visible_bias,
+            #                                              self.w,
+            #                                              self.hidden_bias,
+            #                                              qpu=self.qpu,
+            #                                              chain_strength=self.cs)
+            # sample_output = samp.sample_opposite_layer_pyqubo(sample_h,
+            #                                                   self.hidden_bias,
+            #                                                   self.w.T,
+            #                                                   self.visible_bias,
+            #                                                   qpu=self.qpu,
+            #                                                   chain_strength=self.cs)
+            sample_h = self.sampler.sample_hidden(sample_v,
+                                                  self.hidden_bias,
+                                                  self.w,
+                                                  chain_strength=self.cs)
+            sample_output = self.sampler.sample_visible(self.visible_bias,
+                                                        sample_h,
+                                                        self.w.T,
+                                                        chain_strength=self.cs)
             learning_curve_plot.append(np.sum((np.array(v) - np.array(sample_output))**2))
 
 
@@ -260,21 +299,33 @@ class MSQRBM:
     def generate(self, test_img = None):
         sample_v = []
         if test_img == None:
-            sample_v = samp.sample_v(self.visible_bias, qpu=self.qpu,
-                                     chain_strength=self.cs)
+            # sample_v = samp.sample_v(self.visible_bias, qpu=self.qpu,
+            #                          chain_strength=self.cs)
+            sample_v = self.sampler.sample_visible(self.visible_bias,
+                                                   sample_h,
+                                                   self.w.T,
+                                                   chain_strength=self.cs)
         else:
             sample_v = test_img
-        sample_h = samp.sample_opposite_layer_pyqubo(sample_v,
-                                                     self.visible_bias, self.w,
-                                                     self.hidden_bias,
-                                                     qpu=self.qpu,
-                                                     chain_strength=self.cs)
-        sample_output = samp.sample_opposite_layer_pyqubo(sample_h,
-                                                          self.hidden_bias,
-                                                          self.w.T,
-                                                          self.visible_bias,
-                                                          qpu=self.qpu,
-                                                          chain_strength=self.cs)
+        # sample_h = samp.sample_opposite_layer_pyqubo(sample_v,
+        #                                              self.visible_bias, self.w,
+        #                                              self.hidden_bias,
+        #                                              qpu=self.qpu,
+        #                                              chain_strength=self.cs)
+        sample_h = self.sampler.sample_hidden(sample_v,
+                                                self.hidden_bias,
+                                                self.w,
+                                                chain_strength=self.cs)
+        # sample_output = samp.sample_opposite_layer_pyqubo(sample_h,
+        #                                                   self.hidden_bias,
+        #                                                   self.w.T,
+        #                                                   self.visible_bias,
+        #                                                   qpu=self.qpu,
+        #                                                   chain_strength=self.cs)
+        sample_output = self.sampler.sample_visible(self.visible_bias,
+                                                   sample_h,
+                                                   self.w.T,
+                                                   chain_strength=self.cs)
         return sample_output
 
 
