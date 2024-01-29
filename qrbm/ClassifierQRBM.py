@@ -61,9 +61,9 @@ class ClassQRBM:
         # Couplings
         self.w = (np.random.rand(self.n_visible, self.n_hidden) * 2) - 1
         # Visible biases
-        self.visible_bias = (np.random.rand(self.n_visible) * 2) - 1
+        self.visible_bias = (np.random.rand(self.n_visible))# * 2) - 1
         # Hidden biases
-        self.hidden_bias = (np.random.rand(self.n_hidden) * 2) - 1
+        self.hidden_bias = (np.random.rand(self.n_hidden))# * 2) - 1
 
         self.n_epoch = 0
 
@@ -180,6 +180,9 @@ class ClassQRBM:
             momentum_w = (momentum * momentum_w) + (lr * update_w)
 
             self.w += momentum_w
+            # Restrict to [-1, 1)
+            # self.w = (self.w * (self.w > -1).astype(int)) - (self.w < -1).astype(int)
+            # self.w = (self.w * (self.w < 1).astype(int)) + (self.w > 1).astype(int)
 
             # 6 Update the biases a and b analogously: a=epsilon*(v-v'), b=epsilon*(h-h')
             momentum_v = momentum * momentum_v + lr * (np.array(v) - np.array(v_prim))
@@ -187,6 +190,11 @@ class ClassQRBM:
 
             self.visible_bias += momentum_v
             self.hidden_bias += momentum_h
+            # Restrict to [0, 1)
+            self.visible_bias = self.visible_bias * (self.visible_bias > 0).astype(int)
+            self.visible_bias = (self.visible_bias * (self.visible_bias < 1).astype(int)) + (self.visible_bias > 1).astype(int)
+            self.hidden_bias = self.hidden_bias * (self.hidden_bias > 0).astype(int)
+            self.hidden_bias = (self.hidden_bias * (self.hidden_bias < 1).astype(int)) + (self.hidden_bias > 1).astype(int)
 
             if epoch % epoch_drop == (epoch_drop-1):
                 # learning rate decay

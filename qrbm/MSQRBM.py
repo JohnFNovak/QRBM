@@ -59,8 +59,10 @@ class MSQRBM:
         self.cs = chain_strength
 
         self.w = (np.random.rand(self.n_visible, self.n_hidden) * 2 - 1) * 1
-        self.visible_bias = (np.random.rand(self.n_visible) * 2 - 1) * 1
-        self.hidden_bias = (np.random.rand(self.n_hidden) * 2 - 1) * 1
+        # Visible biases
+        self.visible_bias = (np.random.rand(self.n_visible))# * 2) - 1
+        # Hidden biases
+        self.hidden_bias = (np.random.rand(self.n_hidden))# * 2) - 1
 
         #docelowo własny sampler ogarnąć
         # self.sampler = Sampler()
@@ -244,6 +246,11 @@ class MSQRBM:
             self.hidden_bias += momentum_h
             # print("visible_bias: ", self.visible_bias)
             # print("hidden_bias: ", self.hidden_bias)
+            # Restrict to [0, 1)
+            self.visible_bias = self.visible_bias * (self.visible_bias > 0).astype(int)
+            self.visible_bias = (self.visible_bias * (self.visible_bias < 1).astype(int)) + (self.visible_bias > 1).astype(int)
+            self.hidden_bias = self.hidden_bias * (self.hidden_bias > 0).astype(int)
+            self.hidden_bias = (self.hidden_bias * (self.hidden_bias < 1).astype(int)) + (self.hidden_bias > 1).astype(int)
 
 
             # po updacie musimy zaktualizować qubo
