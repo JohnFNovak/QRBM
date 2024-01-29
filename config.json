@@ -1,0 +1,473 @@
+{
+  "dropped": [
+    "David Disease",
+    "CT wo (what would it show if ordered)",
+    "Aural symptoms (ear pressure, ear popping, ear fullness, ear pain, changes in hearing)?",
+    "CTA (show)",
+    "Side",
+    "Unnamed: 4",
+    "Diagnosis",
+    "MRI (If was ordered would show)",
+    "Case Number",
+    "David Description"
+  ],
+  "order": {
+    "Age": "default",
+    "Duration of Episode": ["<2 min", "2min-20min", "20 minutes-3 hours", "3 hours-days", "4 hours-days"],
+    "Frequency of Episodes": ["1-7 per week", "1-3 per day", "3-30 per day", "Constant"]
+  },
+  "col_types": {
+    "Disease": "Categorical",
+    "Age": "Binned",
+    "Sex": "Categorical",
+    "Stoke Risk (ABCD2 > 4)": "Categorical",
+    "Dizziness Type": "Categorical",
+    "Duration of Episode": "Binned",
+    "Frequency of Episodes": "Binned",
+    "Triggered by turning in bed?": "Categorical",
+    "SG Vertical N": "Categorical",
+    "SG Horizintal N": "Categorical",
+    "SG Torsional N": "Categorical",
+    "Right Gaze Vertical N": "Categorical",
+    "Right G Horizintal N": "Categorical",
+    "Right G Torsional N": "Categorical",
+    "Left Gaze \"Induced\" Vertical Nystagmus": "Categorical",
+    "Left Gaze \"Induced\" Horizintal Nystagmus": "Categorical",
+    "Left Gaze \"Induced\" Torsional Nystagmus": "Categorical",
+    "Up Gaze \"Induced\" Vertical Nystagmus": "Categorical",
+    "Up Gaze \"Induced\" Horizintal Nystagmus": "Categorical",
+    "Up Gaze \"Induced\" Torsional Nystagmus": "Categorical",
+    "Down Gaze \"Induced\" Vertical Nystagmus": "Categorical",
+    "Down Gaze \"Induced\" Horizintal Nystagmus": "Categorical",
+    "Down Gaze \"Induced\" Torsional Nystagmus": "Categorical",
+    "Right Dix-Hallpike Induced Vertical Nystagmus": "Categorical",
+    "Right Dix-Hallpike Induced Horizontal Nystagmus": "Categorical",
+    "Right Dix-Hallpike Induced Torsional Nystagmus": "Categorical",
+    "Left Dix-Hallpike Induced Vertical Nystagmus": "Categorical",
+    "Left Dix-Hallpike Induced Horizontal Nystagmus": "Categorical",
+    "Left Dix-Hallpike Induced Torsional Nystagmus": "Categorical",
+    "Right Roll Induced Vertical Nystagmus": "Categorical",
+    "Right Roll Induced Horizontal Nystagmus": "Categorical",
+    "Right Roll Induced Torsional Nystagmus": "Categorical",
+    "Left Roll Induced Vertical Nystagmus": "Categorical",
+    "Left Roll Induced Horizontal Nystagmus": "Categorical",
+    "Left Roll Induced Torsional Nystagmus": "Categorical",
+    "Bow Induced Vertical Nystagmus": "Categorical",
+    "Bow Induced Horizontal Nystagmus": "Categorical",
+    "Bow Induced Torsional Nystagmus": "Categorical",
+    "Lean Induced Vertical Nystagmus": "Categorical",
+    "Lean Induced Horizontal Nystagmus": "Categorical",
+    "Lean Induced Torsional Nystagmus": "Categorical",
+    "Alternate Cover (Moving from Left Eye Occluded to Right Eye Occluded) caused vertical": "Categorical",
+    "Alternate Cover (Moving from Left Eye Occluded to Right Eye Occluded) caused horizontal": "Categorical",
+    "Head impulse test to the left showed": "Categorical",
+    "Head impulse test to the right showed": "Categorical",
+    "Gait": "Categorical",
+    "Finger-nose-finger left hand": "Categorical",
+    "Finger-nose-finger right hand": "Categorical",
+    "Hearing loss right ear": "Categorical",
+    "Hearing loss left ear": "Categorical",
+    "MRI should be ordered?": "Categorical",
+    "CT wo (should it be ordered?)": "Categorical",
+    "CTA (Order?)": "Categorical",
+    "Treatment": "Categorical"
+  },
+  "cat_cols": {
+    "Disease": [
+      [
+        "BPPV (HC) R",
+        "BPPV (PC) L",
+        "Stroke",
+        "BPPV (HC) L",
+        "Vestibular Neuritis L",
+        "BPPV (PC) R",
+        "Vestibular Neuritis R"
+      ],
+      "warn"
+    ],
+    "Sex": [
+      [
+        "Male",
+        "Female"
+      ],
+      "warn"
+    ],
+    "Stoke Risk (ABCD2 > 4)": [
+      [
+        "Yes",
+        "No"
+      ],
+      "warn"
+    ],
+    "Dizziness Type": [
+      [
+        "Acute Vestibular Syndrome",
+        "Episodic Vestibular Syndrome"
+      ],
+      "warn"
+    ],
+    "Triggered by turning in bed?": [
+      [
+        "Yes",
+        "No"
+      ],
+      "warn"
+    ],
+    "SG Vertical N": [
+      [
+        "Down-beating",
+        "None",
+        "Up-beating"
+      ],
+      "warn"
+    ],
+    "SG Horizintal N": [
+      [
+        "None",
+        "Left-beating",
+        "Right-beating"
+      ],
+      "warn"
+    ],
+    "SG Torsional N": [
+      [
+        "Top-pole-to-L-ear torsional",
+        "Top-pole-to-R-ear torsional",
+        "None"
+      ],
+      "warn"
+    ],
+    "Right Gaze Vertical N": [
+      [
+        "Down-beating",
+        "None"
+      ],
+      "warn"
+    ],
+    "Right G Horizintal N": [
+      [
+        "None",
+        "Right-beating"
+      ],
+      "warn"
+    ],
+    "Right G Torsional N": [
+      [
+        "Top-pole-to-L-ear torsional",
+        "Top-pole-to-R-ear torsional",
+        "None"
+      ],
+      "warn"
+    ],
+    "Left Gaze \"Induced\" Vertical Nystagmus": [
+      [
+        "Down-beating",
+        "None"
+      ],
+      "warn"
+    ],
+    "Left Gaze \"Induced\" Horizintal Nystagmus": [
+      [
+        "None",
+        "Left-beating"
+      ],
+      "warn"
+    ],
+    "Left Gaze \"Induced\" Torsional Nystagmus": [
+      [
+        "Top-pole-to-L-ear torsional",
+        "Top-pole-to-R-ear torsional",
+        "None"
+      ],
+      "warn"
+    ],
+    "Up Gaze \"Induced\" Vertical Nystagmus": [
+      [
+        "None",
+        "Up-beating"
+      ],
+      "warn"
+    ],
+    "Up Gaze \"Induced\" Horizintal Nystagmus": [
+      [
+        "None",
+        "Left-beating",
+        "Right-beating"
+      ],
+      "warn"
+    ],
+    "Up Gaze \"Induced\" Torsional Nystagmus": [
+      [
+        "Top-pole-to-L-ear torsional",
+        "Top pole to right ear torsional nystamgus",
+        "None"
+      ],
+      "warn"
+    ],
+    "Down Gaze \"Induced\" Vertical Nystagmus": [
+      [
+        "Down-beating",
+        "None"
+      ],
+      "warn"
+    ],
+    "Down Gaze \"Induced\" Horizintal Nystagmus": [
+      [
+        "None",
+        "Left-beating",
+        "Right-beating"
+      ],
+      "warn"
+    ],
+    "Down Gaze \"Induced\" Torsional Nystagmus": [
+      [
+        "Top-pole-to-R-ear torsional",
+        "None"
+      ],
+      "warn"
+    ],
+    "Right Dix-Hallpike Induced Vertical Nystagmus": [
+      [
+        "Down-beating",
+        "None",
+        "Up-beating"
+      ],
+      "warn"
+    ],
+    "Right Dix-Hallpike Induced Horizontal Nystagmus": [
+      [
+        "None",
+        "Left-beating",
+        "Right-beating"
+      ],
+      "warn"
+    ],
+    "Right Dix-Hallpike Induced Torsional Nystagmus": [
+      [
+        "Top-pole-to-L-ear torsional",
+        "Top-pole-to-R-ear torsional",
+        "None"
+      ],
+      "warn"
+    ],
+    "Left Dix-Hallpike Induced Vertical Nystagmus": [
+      [
+        "Down-beating",
+        "None",
+        "Up-beating"
+      ],
+      "warn"
+    ],
+    "Left Dix-Hallpike Induced Horizontal Nystagmus": [
+      [
+        "None",
+        "Left-beating",
+        "Right-beating"
+      ],
+      "warn"
+    ],
+    "Left Dix-Hallpike Induced Torsional Nystagmus": [
+      [
+        "Top-pole-to-L-ear torsional",
+        "Top-pole-to-R-ear torsional",
+        "None"
+      ],
+      "warn"
+    ],
+    "Right Roll Induced Vertical Nystagmus": [
+      [
+        "Down-beating",
+        "None",
+        "Up-beating"
+      ],
+      "warn"
+    ],
+    "Right Roll Induced Horizontal Nystagmus": [
+      [
+        "None",
+        "Left-beating",
+        "Right-beating"
+      ],
+      "warn"
+    ],
+    "Right Roll Induced Torsional Nystagmus": [
+      [
+        "Top-pole-to-L-ear torsional",
+        "Top-pole-to-R-ear torsional",
+        "None"
+      ],
+      "warn"
+    ],
+    "Left Roll Induced Vertical Nystagmus": [
+      [
+        "Down-beating",
+        "None",
+        "Up-beating"
+      ],
+      "warn"
+    ],
+    "Left Roll Induced Horizontal Nystagmus": [
+      [
+        "None",
+        "Left-beating",
+        "Right-beating"
+      ],
+      "warn"
+    ],
+    "Left Roll Induced Torsional Nystagmus": [
+      [
+        "Top-pole-to-L-ear torsional",
+        "Top-pole-to-R-ear torsional",
+        "None"
+      ],
+      "warn"
+    ],
+    "Bow Induced Vertical Nystagmus": [
+      [
+        "Down-beating",
+        "None",
+        "Up-beating"
+      ],
+      "warn"
+    ],
+    "Bow Induced Horizontal Nystagmus": [
+      [
+        "None",
+        "Left-beating",
+        "Right-beating"
+      ],
+      "warn"
+    ],
+    "Bow Induced Torsional Nystagmus": [
+      [
+        "Torsional Top-Pole-to-the-Right-Ear",
+        "None",
+        "Torsional Top-Pole-to-the-Left-Ear"
+      ],
+      "warn"
+    ],
+    "Lean Induced Vertical Nystagmus": [
+      [
+        "Down-beating",
+        "None",
+        "Up-beating"
+      ],
+      "warn"
+    ],
+    "Lean Induced Horizontal Nystagmus": [
+      [
+        "None",
+        "Left-beating",
+        "Right-beating"
+      ],
+      "warn"
+    ],
+    "Lean Induced Torsional Nystagmus": [
+      [
+        "Torsional Top-Pole-to-the-Right-Ear",
+        "None",
+        "Torsional Top-Pole-to-the-Left-Ear"
+      ],
+      "warn"
+    ],
+    "Alternate Cover (Moving from Left Eye Occluded to Right Eye Occluded) caused vertical": [
+      [
+        "No eye motion",
+        "Left eye moves down (L hyper)",
+        "Left eye moves up (R hyper)"
+      ],
+      "warn"
+    ],
+    "Alternate Cover (Moving from Left Eye Occluded to Right Eye Occluded) caused horizontal": [
+      [
+        "No eye motion",
+        "R eye moves down (R hyper)",
+        "L eye moves up (L hyper)"
+      ],
+      "warn"
+    ],
+    "Head impulse test to the left showed": [
+      [
+        "No catch up saccade",
+        "Catch up saccade"
+      ],
+      "warn"
+    ],
+    "Head impulse test to the right showed": [
+      [
+        "No catch up saccade",
+        "Catch up saccade"
+      ],
+      "warn"
+    ],
+    "Gait": [
+      [
+        "Abnormal",
+        "Normal"
+      ],
+      "warn"
+    ],
+    "Finger-nose-finger left hand": [
+      [
+        "Abnormal",
+        "Normal",
+        "None"
+      ],
+      "warn"
+    ],
+    "Finger-nose-finger right hand": [
+      [
+        "Abnormal",
+        "Normal",
+        "None"
+      ],
+      "warn"
+    ],
+    "Hearing loss right ear": [
+      [
+        "Yes",
+        "None"
+      ],
+      "warn"
+    ],
+    "Hearing loss left ear": [
+      [
+        "Yes",
+        "None"
+      ],
+      "warn"
+    ],
+    "MRI should be ordered?": [
+      [
+        "Yes",
+        "No"
+      ],
+      "warn"
+    ],
+    "CT wo (should it be ordered?)": [
+      [
+        "Yes",
+        "No"
+      ],
+      "warn"
+    ],
+    "CTA (Order?)": [
+      [
+        "Yes",
+        "No"
+      ],
+      "warn"
+    ],
+    "Treatment": [
+      [
+        "L Dix hallpike",
+        "R Dix hallpike",
+        "Stroke Protocol",
+        "Dishcarge and wait",
+        "Log Roll",
+        "Bleed Protocol"
+      ],
+      "warn"
+    ]
+  }
+}
