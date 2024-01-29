@@ -205,12 +205,12 @@ class ClassQRBM:
 
     def generate(self, label, passes: int = 1):
         encoded_label = self.encode_label(label)
-        mask = np.hstack((
-            np.ones(len(self.data_template.ravel())),
-            np.zeros(len(self.classes))
-        ))
+        # mask = np.hstack((
+        #     np.ones(len(self.data_template.ravel())),
+        #     np.zeros(len(self.classes))
+        # ))
         sample_v = np.hstack((
-            np.ones(len(self.data_template.ravel())),
+            self.visible_bias[:len(self.data_template.ravel())],
             encoded_label
         ))
         for i in range(passes):
@@ -239,7 +239,7 @@ class ClassQRBM:
         ))
         sample_v = np.hstack((
             data.ravel(),
-            np.zeros(len(self.classes))
+            self.visible_bias[-len(self.classes):]
         ))
 
         for i in range(passes):
