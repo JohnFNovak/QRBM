@@ -4,79 +4,8 @@ import os
 import json
 import argparse
 import numpy as np
-
-
-def clean_input(prompt, options, default=None):
-    i = None
-    options_lower = [x.lower() for x in options]
-    while i is None:
-        default_string = ''
-        if default is not None:
-            default_string = f' (DEFAULT: {default})'
-        temp = input(prompt + ' [' + ','.join(options) + ']' + default_string + ': ')
-        temp = temp.lower()
-        if len(temp) == 0 and default is not None:
-            i = default
-            continue
-        if temp in options_lower:
-            i = options[options_lower.index(temp)]
-        elif len([x for x in options_lower if x.startswith(temp)]) == 1:
-            filtered = [x for x in options_lower if x.startswith(temp)]
-            i = options[options_lower.index(filtered[0])]
-    return i
-
-
-def choose_single(options, default=None):
-    options = sorted(list(map(str, options)))
-    done = False
-    chosen = default
-    while not done:
-        for i, opt in enumerate(options):
-            if opt == default:
-                print(f'{i+1} - {opt} <= DEFAULT')
-            else:
-                print(f'{i+1} - {opt}')
-        temp = input(f'choose an option: ')
-        if len(temp) == 0 and chosen is not None:
-            done = True
-            continue
-        try:
-            indx = int(temp) - 1
-            if indx < len(options):
-                chosen = options[indx]
-                done = True
-        except:
-            pass
-    return chosen
-
-
-def choose_multiple(options, break_string='q', default=[]):
-    options = sorted(list(map(str, options)))
-    done = False
-    chosen = default
-    while not done:
-        for i, opt in enumerate(options):
-            chosen_flag = ' '
-            if options[i] in chosen:
-                chosen_flag = 'x'
-            print(f'{i+1} [{chosen_flag}] - {opt}')
-        temp = input(f'choose an option (`{break_string}` to quit, `a` for all): ')
-        if temp == break_string or len(temp) == 0:
-            done = True
-        elif temp == 'a':
-            chosen = set(options)
-            done = True
-        else:
-            try:
-                indx = int(temp) - 1
-                if indx < len(options):
-                    if indx in chosen:
-                        chosen.remove(options[indx])
-                    else:
-                        chosen.append(options[indx])
-            except:
-                pass
-    return list(chosen)
+from encoding import bit_encode
+from cli_helpers import clean_input, choose_single, choose_multiple
 
 
 def update_mask_dropable_by_config(col, data, config, mask):
@@ -99,7 +28,7 @@ def update_mask_dropable_by_config(col, data, config, mask):
     return mask
 
 
-def update_mask_dropable_by_count(col, data, mask, min_count=3):
+def update_mask_dropable_by_count(col, data, mask, config, min_count=3):
 
     values = data[col].values
     options = list(set(values))
@@ -115,7 +44,7 @@ def update_mask_dropable_by_count(col, data, mask, min_count=3):
     return updated, mask
 
 
-def check_for_signal(col, data):
+def check_for_signal(col, data, config):
 
     values = data[col].values
 
@@ -152,43 +81,7 @@ def check_for_warn(col, data, config):
             print(f' !!! - In column `{col}` unknown value `{x}` found. Valid options are {options_str}')
 
 
-def binary_encode(values):
-    uniq = sorted(list(set(values)))
-    result = np.array(values == uniq[0]).astype(int)
-    return [result]
-
-def trinary_encode(values, col, how='signal', s_prefix='N'):
-    uniq = sorted(list(set(values)))
-    if how == 'signal':
-        s = [x for x in uniq if x.startswith(s_prefix)]
-        if len(s) == 1:
-            sig = s[0]
-        else:
-            sig = uniq[0]
-        alt = [x for x in uniq if x != sig]
-        bit0 = np.array(values != sig).astype(int)
-        bit1 = np.array(values == alt[0]).astype(int) - np.array(values != sig).astype(int)
-    return [f'{col}-{sig}', f'{col}-{alt[0]}_vs_{alt[1]}'], [bit0, bit1]
-
-def one_hot_encode(values, col):
-    uniq = sorted(list(set(values)))
-    names = []
-    bits = []
-    for u in uniq:
-        names.append(f'{col}-{u}')
-        bits.append(np.array(values != u).astype(int))
-    return names, bits
-
-def bit_encode(data, col):
-    uniq = set(data[col])
-    if len(uniq) == 2:
-        return [col], binary_encode(data[col])
-    elif len(uniq) == 3:
-        return trinary_encode(data[col], col)
-    else:
-        return one_hot_encode(data[col], col)
-
-def parse_data(data, config):
+def clean_data(data, config):
     # First we scrap the columns we don't care about
     columns = [c for c in data.columns if c not in config['dropped']]
     print(f'Data has {len(data)} rows and {len(columns)} columns.')
@@ -212,7 +105,7 @@ def parse_data(data, config):
     while True:
         # print(f'checking {columns[col]} for dropable by count... [{updated}]')
         # Our update mask function will return `True` if the mask was updated
-        check, mask = update_mask_dropable_by_count(columns[col], data, mask)
+        check, mask = update_mask_dropable_by_count(columns[col], data, mask, config)
         if check:
             print(f' !!! - found dropable entries in {columns[col]}')
         updated = updated or check
@@ -245,7 +138,7 @@ def parse_data(data, config):
     print('Checking for columns that lack signal...')
     cols_to_drop = []
     for col in columns:
-        if not check_for_signal(col, data):
+        if not check_for_signal(col, data, config):
             cols_to_drop.append(col)
             print(f"dropping column `{col}` due to lack of signal")
 
@@ -254,7 +147,10 @@ def parse_data(data, config):
     print('=======================')
     print(f'Data has {len(data)} rows and {len(columns)} columns.')
     data = data[columns]
+    return data
 
+
+def encode_data(data, config):
     encoded = []
     labels = []
     for col in data.columns:
@@ -262,12 +158,10 @@ def parse_data(data, config):
             l, d = bit_encode(data, col)
             encoded += d
             labels += l
-    # print(labels)
-    # print(encoded)
-    # print(np.array(encoded))
+
     encoded_data = pd.DataFrame(np.array(encoded).T, columns=labels)
-    with open('encoded_data.csv', 'w') as f:
-        encoded_data.to_csv(f, index=False)
+    return encoded_data
+
 
 def generate_config(data, skip=False, config_file='config.json'):
     dropped_cols = set()
@@ -357,6 +251,25 @@ def generate_config(data, skip=False, config_file='config.json'):
         print('========================')
 
 
+def load_data(filename, sheet_name):
+    if filename.endswith('csv'):
+        with open(filename, 'r') as f:
+            data = pd.read_csv(f)
+    elif filename.endswith('xlsx'):
+        with open(filename, 'rb') as f:
+            data = pd.read_excel(f, sheet_name=sheet_name)
+            data = data.fillna('None')
+    else:
+        raise Exception('We don\'t know how to load the provided file')
+    return data
+
+
+def load_config(filename):
+    with open(filename, 'r') as f:
+        config = json.load(f)
+    return config
+
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
@@ -371,21 +284,17 @@ if __name__ == '__main__':
 
     print(args.file)
 
-    if args.file.endswith('csv'):
-        with open(args.file, 'r') as f:
-            data = pd.read_csv(f)
-    elif args.file.endswith('xlsx'):
-        with open(args.file, 'rb') as f:
-            data = pd.read_excel(f, sheet_name=args.sheet)
-            data = data.fillna('None')
-    else:
-        print('We don\'t know how to load the provided file')
-        exit
+    data = load_data(args.file, args.sheet)
 
     if args.config:
         generate_config(data, args.skip, args.config_file)
 
     if args.parse:
-        with open(args.config_file, 'r') as f:
-            config = json.load(f)
-        parse_data(data, config)
+        config = load_config(args.config_file)
+        data = clean_data(data, config)
+        encoded = encode_data(data, config)
+
+        # TODO: put this behind a flag or something?
+        with open('encoded_data.csv', 'w') as f:
+            encoded_data.to_csv(f, index=False)
+
