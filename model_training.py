@@ -3,21 +3,21 @@ from tqdm import tqdm_notebook as tqdm
 
 from qrbm.EncodedQRBM import QRBM
 
-
 import pandas as pd
 
 import random
 
 from parsing_data import load_data, clean_data, load_config
-from sklearn.preprocessing import OrdinalEncoder, TargetEncoder
+from sklearn.preprocessing import OrdinalEncoder
 
 from sklearn.linear_model import LogisticRegression
 
 # Variables
-n_hidden = 300
-epochs = 300
+n_hidden = 50
+epochs = 30
 lr = 0.1
 split_ratio = 0.8
+n_folds = 5
 
 qpu = False
 
@@ -39,43 +39,48 @@ df = clean_data(raw_data, config)
 
 encoder = OrdinalEncoder().fit(df[['Disease']])
 
-y = encoder.transform(df[['Disease']])
+Y = encoder.transform(df[['Disease']])
 
 indices = list(range(len(data)))
 
-# test train split
-random.shuffle(indices)
-train = indices[:num_train]
-test = indices[num_train:]
-print(len(train), len(test))
-X_train = data.values[train]
-X_test = data.values[test]
-y_train = y.ravel()[train]
-y_test = y.ravel()[test]
+#n-folds cross validation
+scores = []
+for i in range(n_folds):
+    # test train split
+    random.shuffle(indices)
+    train = indices[:num_train]
+    test = indices[num_train:]
+    X_train = data.values[train]
+    X_test = data.values[test]
+    y_train = Y.ravel()[train]
+    y_test = Y.ravel()[test]
 
-# Training
-bm = QRBM(X_train[0], n_hidden=n_hidden, qpu=qpu)
-bm.tqdm = tqdm
-bm.train(X_train, epochs = 300, lr = lr, lr_decay = 0.1)
-bm.save('rbm_model')
-clf = LogisticRegression(random_state=0)
+    # Training
+    bm = QRBM(X_train[0], n_hidden=n_hidden, qpu=qpu)
+    bm.tqdm = tqdm
+    bm.train(X_train, epochs = epochs, lr = lr, lr_decay = 0.1)
+    bm.save(f'rbm_model_{i}')
+    clf = LogisticRegression(random_state=0)
 
-clf = clf.fit(X_train, y_train)
+    clf = clf.fit(X_train, y_train)
 
-g = 0
-b = 0
-for x, y in zip(X_test, y_test.tolist()):
-    x = x.reshape(1, -1)
-    y = np.array([[y]])
-    print(encoder.inverse_transform(y))
-    pred_indx = clf.predict(x)
-    y_est = pred_indx.reshape((1, 1))
-    print(encoder.inverse_transform(y_est), pred_indx)
-    if y == y_est:
-        g += 1
-    else:
-        b += 1
-    print(clf.predict_proba(x))
-    print(clf.score(x, y))
-    print('===')
-print(g, b, g/(g+b))
+    g = 0
+    b = 0
+    for x, y in zip(X_test, y_test.tolist()):
+        x = x.reshape(1, -1)
+        y = np.array([[y]])
+        # print(encoder.inverse_transform(y))
+        pred_indx = clf.predict(x)
+        y_est = pred_indx.reshape((1, 1))
+        # print(encoder.inverse_transform(y_est), pred_indx)
+        if y == y_est:
+            g += 1
+        else:
+            b += 1
+            print(encoder.inverse_transform(y), encoder.inverse_transform(y_est))
+        # print(clf.predict_proba(x))
+        # print(clf.score(x, y))
+        # print('===')
+    print(g, b, g/(g+b))
+    scores.append([g/(g+b)])
+print(np.mean(scores))
