@@ -149,7 +149,6 @@ def clean_data(data, config):
     data = data[columns]
     return data
 
-
 def encode_data(data, config):
     encoded = []
     labels = []
@@ -296,5 +295,5 @@ if __name__ == '__main__':
 
         # TODO: put this behind a flag or something?
         with open('encoded_data.csv', 'w') as f:
-            encoded_data.to_csv(f, index=False)
+            encoded.to_csv(f, index=False)
 
