@@ -203,85 +203,23 @@ class QRBM:
         plt.show()
         return
 
-    def generate(self, label, passes: int = 1):
-        encoded_label = self.encode_label(label)
-        mask = np.hstack((
-            np.ones(len(self.data_template.ravel())),
-            np.zeros(len(self.classes))
-        ))
-        sample_v = np.hstack((
-            np.ones(len(self.data_template.ravel())),
-            encoded_label
-        ))
-        for i in range(passes):
-            if i == 0:
-                sample_h = self.sampler.sample_hidden(sample_v,
-                                                      self.hidden_bias,
-                                                      self.w,
-                                                      chain_strength=self.cs,
-                                                      mask=mask)
-            else:
-                sample_h = self.sampler.sample_hidden(sample_v,
+    def sample_hidden(self, visible, n_times=1):
+        sample_h = self.sampler.sample_hidden(visible,
+                                              self.hidden_bias,
+                                              self.w,
+                                              chain_strength=self.cs)
+        if n_times > 1:
+            for _ in range(n_times - 1):
+                sample_v = self.sampler.sample_visible(self.visible_bias,
+                                                       sample_h,
+                                                       self.w.T,
+                                                       chain_strength=self.cs)
+                sample_h = self.sampler.sample_hidden(visible,
                                                       self.hidden_bias,
                                                       self.w,
                                                       chain_strength=self.cs)
-            sample_v = self.sampler.sample_visible(self.visible_bias,
-                                                   sample_h,
-                                                   self.w.T,
-                                                   chain_strength=self.cs)
-            sample_v[-len(self.classes):] = encoded_label
-        result = sample_v[:len(self.data_template.ravel())]#.reshape(self.data_template.shape)
-        return result
+        return sample_h
 
-    def classify(self, data, passes = 1):
-        mask = np.hstack((
-            np.zeros(len(self.data_template.ravel())),
-            np.ones(len(self.classes))
-        ))
-        sample_v = np.hstack((
-            data.ravel(),
-            np.zeros(len(self.classes))
-        ))
-
-        for i in range(passes):
-            if i == 0:
-                sample_h = self.sampler.sample_hidden(sample_v,
-                                                      self.hidden_bias,
-                                                      self.w,
-                                                      chain_strength=self.cs,
-                                                      mask=mask)
-                # sample_h = samp.sample_opposite_layer_pyqubo(sample_v,
-                #                                             self.visible_bias, self.w,
-                #                                             self.hidden_bias,
-                #                                             qpu=self.qpu,
-                #                                             chain_strength=self.cs,
-                #                                             mask=mask,
-                #                                             sampler=self.sampler)
-            else:
-                sample_h = self.sampler.sample_hidden(sample_v,
-                                                      self.hidden_bias,
-                                                      self.w,
-                                                      chain_strength=self.cs)
-                # sample_h = samp.sample_opposite_layer_pyqubo(sample_v,
-                #                                             self.visible_bias, self.w,
-                #                                             self.hidden_bias,
-                #                                             qpu=self.qpu,
-                #                                             chain_strength=self.cs,
-                #                                             sampler=self.sampler)
-            sample_v = self.sampler.sample_visible(self.visible_bias,
-                                                   sample_h,
-                                                   self.w.T,
-                                                   chain_strength=self.cs)
-            # sample_v = samp.sample_opposite_layer_pyqubo(sample_h,
-            #                                              self.hidden_bias,
-            #                                              self.w.T,
-            #                                              self.visible_bias,
-            #                                              qpu=self.qpu,
-            #                                              chain_strength=self.cs,
-            #                                              sampler=self.sampler)
-            sample_v[:len(self.data_template.ravel())] = data.ravel()
-        result = sample_v[-len(self.classes):]
-        return {c:v for c, v in zip(self.classes, result)}
 
     def save(self, filename):
         with np.printoptions(threshold=sys.maxsize):
