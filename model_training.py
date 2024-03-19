@@ -60,13 +60,17 @@ for i in range(n_folds):
     bm.tqdm = tqdm
     bm.train(X_train, epochs = epochs, lr = lr, lr_decay = 0.1)
     bm.save(f'rbm_model_{i}')
+
+    encoded_train = np.array([bm.sample_hidden(x) for x in X_train])
+    encoded_test = np.array([bm.sample_hidden(x) for x in X_test])
+
     clf = LogisticRegression(random_state=0)
 
-    clf = clf.fit(X_train, y_train)
+    clf = clf.fit(encoded_train, y_train)
 
     g = 0
     b = 0
-    for x, y in zip(X_test, y_test.tolist()):
+    for x, y in zip(encoded_test, y_test.tolist()):
         x = x.reshape(1, -1)
         y = np.array([[y]])
         # print(encoder.inverse_transform(y))
