@@ -17,7 +17,6 @@
     "Frequency of Episodes": ["1-7 per week", "1-3 per day", "3-30 per day", "Constant"]
   },
   "col_types": {
-    "Disease": "Categorical",
     "Age": "Binned",
     "Sex": "Categorical",
     "Stoke Risk (ABCD2 > 4)": "Categorical",
@@ -66,25 +65,9 @@
     "Finger-nose-finger left hand": "Categorical",
     "Finger-nose-finger right hand": "Categorical",
     "Hearing loss right ear": "Categorical",
-    "Hearing loss left ear": "Categorical",
-    "MRI should be ordered?": "Categorical",
-    "CT wo (should it be ordered?)": "Categorical",
-    "CTA (Order?)": "Categorical",
-    "Treatment": "Categorical"
+    "Hearing loss left ear": "Categorical"
   },
   "cat_cols": {
-    "Disease": [
-      [
-        "BPPV (HC) R",
-        "BPPV (PC) L",
-        "Stroke",
-        "BPPV (HC) L",
-        "Vestibular Neuritis L",
-        "BPPV (PC) R",
-        "Vestibular Neuritis R"
-      ],
-      "warn"
-    ],
     "Sex": [
       [
         "Male",
@@ -434,38 +417,6 @@
       [
         "Yes",
         "None"
-      ],
-      "warn"
-    ],
-    "MRI should be ordered?": [
-      [
-        "Yes",
-        "No"
-      ],
-      "warn"
-    ],
-    "CT wo (should it be ordered?)": [
-      [
-        "Yes",
-        "No"
-      ],
-      "warn"
-    ],
-    "CTA (Order?)": [
-      [
-        "Yes",
-        "No"
-      ],
-      "warn"
-    ],
-    "Treatment": [
-      [
-        "L Dix hallpike",
-        "R Dix hallpike",
-        "Stroke Protocol",
-        "Dishcarge and wait",
-        "Log Roll",
-        "Bleed Protocol"
       ],
       "warn"
     ]
