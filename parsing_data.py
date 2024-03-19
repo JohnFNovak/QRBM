@@ -152,14 +152,21 @@ def clean_data(data, config):
 def encode_data(data, config):
     encoded = []
     labels = []
+    col_map = {}
+    c = 0
     for col in data.columns:
         if col in config['cat_cols']:
             l, d = bit_encode(data, col)
+            col_map[col] = {'indx': [i+c for i in range(len(d))]}
+            col_map[col]['columns'] = l
+            c += len(d)
+            print(col, col_map[col])
+            # print(col, len(d), len(d[0]), l)
             encoded += d
             labels += l
 
     encoded_data = pd.DataFrame(np.array(encoded).T, columns=labels)
-    return encoded_data
+    return encoded_data, col_map
 
 
 def generate_config(data, skip=False, config_file='config.json'):
@@ -291,9 +298,11 @@ if __name__ == '__main__':
     if args.parse:
         config = load_config(args.config_file)
         data = clean_data(data, config)
-        encoded = encode_data(data, config)
+        encoded, col_map = encode_data(data, config)
 
         # TODO: put this behind a flag or something?
+        with open('encoding_col_map.pkl', 'wb') as f:
+            pickle.dump(col_map, f)
         with open('encoded_data.csv', 'w') as f:
             encoded.to_csv(f, index=False)
 
