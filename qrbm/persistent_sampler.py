@@ -72,6 +72,7 @@ class Sampler:
         for i in range(self.n_visible):
             feed_dict[f'bv{i}'] = v_states[i]
             if mask is not None and mask[i]:
+                # If we are masking out certain nodes, we just zero the associated couplings
                 for j in range(self.n_hidden):
                     feed_dict[f'W{i},{j}'] = 0
             else:
@@ -102,6 +103,7 @@ class Sampler:
         for i in range(self.n_hidden):
             feed_dict[f'bh{i}'] = h_states[i]
             if mask is not None and mask[i]:
+                # If we are masking out certain nodes, we just zero the associated couplings
                 for j in range(self.n_visible):
                     feed_dict[f'W{i},{j}'] = 0
             else:

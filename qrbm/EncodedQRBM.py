@@ -203,18 +203,27 @@ class QRBM:
         plt.show()
         return
 
-    def sample_hidden(self, visible, n_times=1):
-        sample_h = self.sampler.sample_hidden(visible,
-                                              self.hidden_bias,
-                                              self.w,
-                                              chain_strength=self.cs)
+    def sample_hidden(self, visible, n_times=1, mask=None, use_visible=False):
+        sample_v = visible.copy()
+        if mask is not None and use_visible:
+            sample_v[mask] = self.visible_bias[mask]
+            sample_h = self.sampler.sample_hidden(sample_v,
+                                                self.hidden_bias,
+                                                self.w,
+                                                chain_strength=self.cs)
+        else:
+            sample_h = self.sampler.sample_hidden(sample_v,
+                                                self.hidden_bias,
+                                                self.w,
+                                                chain_strength=self.cs,
+                                                mask=mask)
         if n_times > 1:
             for _ in range(n_times - 1):
                 sample_v = self.sampler.sample_visible(self.visible_bias,
                                                        sample_h,
                                                        self.w.T,
                                                        chain_strength=self.cs)
-                sample_h = self.sampler.sample_hidden(visible,
+                sample_h = self.sampler.sample_hidden(sample_v,
                                                       self.hidden_bias,
                                                       self.w,
                                                       chain_strength=self.cs)
